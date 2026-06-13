@@ -1,11 +1,14 @@
 package internal
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 )
 
 type server struct {
@@ -24,8 +27,28 @@ func (s *server) listenAndServe() error {
 		Addr:    net.JoinHostPort("localhost", fmt.Sprint(s.port)),
 		Handler: mux,
 	}
-	// TODO: handle signal for graceful shutdown
-	return srv.ListenAndServe()
+
+	// gracefully shutdown on SIGINT
+	shutdown := make(chan os.Signal, 1)
+	shutdownComplete := make(chan error, 1)
+	go func() {
+		<-shutdown
+		slog.Info("shutting down")
+		err := srv.Shutdown(context.Background())
+		shutdownComplete <- err
+	}()
+	signal.Notify(shutdown, os.Interrupt)
+
+	// listen and serve
+	slog.Info("listening", "addr", srv.Addr)
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return fmt.Errorf("failed to listen: %w", err)
+	}
+
+	// wait for shutdown to complete
+	err = <-shutdownComplete
+	return err
 }
 
 func (s *server) handleFetchState(w http.ResponseWriter, r *http.Request) {
