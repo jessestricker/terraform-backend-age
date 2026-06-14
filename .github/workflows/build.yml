@@ -16,7 +16,9 @@ jobs:
           persist-credentials: false
       - name: Install Nix
         uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
+      - name: Prefetch inputs
+        run: nix flake prefetch-inputs
       - name: Build
-        run: nix build --print-build-logs --verbose
+        run: nix build
       - name: Check
-        run: nix flake check --print-build-logs --verbose
+        run: nix flake check
