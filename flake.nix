@@ -8,22 +8,17 @@
           inherit system;
           config.allowUnfree = true;
         };
-
-        terraform-backend-age = pkgs.buildGoModule {
+      in
+      rec {
+        packages.default = pkgs.buildGoModule {
           pname = "terraform-backend-age";
           version = "0.0.0-dev";
           src = ./.;
           vendorHash = "sha256-vcMWw5iL9UD7QihrMWu5Irh+n8ss5zD8V9MocJLZ2O4=";
         };
-      in
-      {
-        packages = {
-          inherit terraform-backend-age;
-          default = terraform-backend-age;
-        };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ terraform-backend-age ];
+          inputsFrom = [ packages.default ];
           packages = with pkgs; [
             age
             delve
