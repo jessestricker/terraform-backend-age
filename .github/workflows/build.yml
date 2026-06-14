@@ -27,11 +27,11 @@ jobs:
       - name: Preload Nix shell
         run: nix develop
       - name: Build
-        run: nix build
+        run: nix build --no-link
       - name: Check Nix
         run: nix flake check
       - name: Check Go
-        shell: "nix develop -c bash -e {0}"
+        shell: nix develop -c bash -e {0}
         run: |
           go fix ./...
           go fmt ./...
