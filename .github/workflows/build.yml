@@ -1,0 +1,41 @@
+name: Build
+on:
+  pull_request:
+    branches: [main]
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    name: Build
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install Nix
+        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
+      - name: Restore and save Nix store
+        uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+      - name: Build
+        run: nix build --no-link
+      - name: Check Nix
+        run: nix flake check
+      - name: Check Go
+        shell: nix develop -c bash -e {0}
+        run: |
+          go fix ./...
+          go fmt ./...
+          go vet ./...
+          staticcheck ./...
+      - name: Fail on mutations
+        run: |
+          git add --all
+          git diff --cached --exit-code
