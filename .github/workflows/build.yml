@@ -1,0 +1,22 @@
+name: Build
+on:
+  pull_request:
+    branches: [main]
+permissions: {}
+jobs:
+  build:
+    name: Build
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install Nix
+        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
+      - name: Build
+        run: nix build --print-build-logs --verbose
+      - name: Check
+        run: nix flake check --print-build-logs --verbose

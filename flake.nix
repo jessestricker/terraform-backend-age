@@ -22,7 +22,9 @@
           packages = with pkgs; [
             age
             delve
+            go-tools
             gopls
+            gotools
             terraform
           ];
         };
