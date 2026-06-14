@@ -20,7 +20,11 @@ func loadKeyFile(path string) (*keyFile, error) {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	identities, err := age.ParseIdentities(bytes.NewReader(data))
+	return parseKeyFile(bytes.NewReader(data))
+}
+
+func parseKeyFile(r io.Reader) (*keyFile, error) {
+	identities, err := age.ParseIdentities(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse identities: %w", err)
 	}
