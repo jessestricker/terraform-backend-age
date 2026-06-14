@@ -17,16 +17,24 @@
           vendorHash = "sha256-vcMWw5iL9UD7QihrMWu5Irh+n8ss5zD8V9MocJLZ2O4=";
         };
 
-        devShells.default = pkgs.mkShell {
-          inputsFrom = [ packages.default ];
-          packages = with pkgs; [
-            age
-            delve
-            go-tools
-            gopls
-            gotools
-            terraform
-          ];
+        devShells = {
+          default = pkgs.mkShell {
+            inputsFrom = [ packages.default ];
+            packages = with pkgs; [
+              delve
+              go-tools
+              gopls
+              gotools
+            ];
+          };
+
+          integ-test = pkgs.mkShell {
+            inputsFrom = [ devShells.default ];
+            packages = with pkgs; [
+              age
+              terraform
+            ];
+          };
         };
       }
     );
