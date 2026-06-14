@@ -19,8 +19,13 @@ jobs:
           persist-credentials: false
       - name: Install Nix
         uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
-      - name: Prefetch inputs
-        run: nix flake prefetch-inputs
+      - name: Restore and save Nix store
+        uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+      - name: Preload Nix shell
+        run: nix develop
       - name: Build
         run: nix build
       - name: Check
